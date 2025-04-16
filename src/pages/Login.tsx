@@ -1,16 +1,31 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { toast } from "sonner"
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi"
+import { verificarConexion } from "../services/api"
 
 const API_LOGIN_URL = "https://back-wero.onrender.com/api/login"
+const BASE_URL = "https://back-wero.onrender.com"
 
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [cargando, setCargando] = useState(true)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const iniciar = async () => {
+      const activa = await verificarConexion()
+      if (!activa) {
+        await fetch(BASE_URL) // intenta "despertarla"
+        await new Promise((res) => setTimeout(res, 4000)) // espera unos segundos
+      }
+      setCargando(false)
+    }
+    iniciar()
+  }, [])
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -36,6 +51,17 @@ export default function Login() {
     } catch {
       toast.error("Error al conectar con el servidor")
     }
+  }
+
+  if (cargando) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#F3F4F6]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-lg text-gray-700 font-medium">Conectando con el servidor...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
